@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jorge Torres Rios</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Contenedor Principal */
+    .container {
+      text-align: center;
+      z-index: 2;
+      padding: 20px;
+      pointer-events: none; /* Permite que el cursor pase sin obstáculo */
+    }
+
+    .container * {
+      pointer-events: auto; /* Activa la interacción solo en los elementos interactivos */
+    }
+
+    /* Nombre Principal Neón Azul */
+    .title {
+      font-size: 4rem;
+      font-weight: 800;
+      color: #00f3ff;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      text-shadow: 
+        0 0 5px #00f3ff,
+        0 0 10px #00f3ff,
+        0 0 20px #00f3ff,
+        0 0 40px #0088ff,
+        0 0 80px #0088ff;
+      margin-bottom: 25px;
+      animation: pulse 2s infinite alternate;
+    }
+
+    /* Enlace Estilizado */
+    .link-container {
+      margin-top: 15px;
+    }
+
+    .neon-link {
+      color: #00f3ff;
+      font-size: 1.2rem;
+      text-decoration: none;
+      border: 2px solid #00f3ff;
+      padding: 12px 28px;
+      border-radius: 30px;
+      display: inline-block;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    .neon-link:hover {
+      background-color: #00f3ff;
+      color: #000000;
+      box-shadow: 
+        0 0 20px #00f3ff,
+        0 0 40px #00f3ff;
+      transform: translateY(-3px);
+    }
+
+    /* Animación de Parpadeo Suave */
+    @keyframes pulse {
+      0% {
+        opacity: 0.9;
+        text-shadow: 0 0 5px #00f3ff, 0 0 10px #00f3ff, 0 0 20px #00f3ff, 0 0 40px #0088ff;
+      }
+      100% {
+        opacity: 1;
+        text-shadow: 0 0 10px #00f3ff, 0 0 20px #00f3ff, 0 0 40px #00f3ff, 0 0 80px #0088ff;
+      }
+    }
+
+    /* Canvas para Burbujas y Rastro Neón */
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Adaptabilidad Móvil */
+    @media (max-width: 768px) {
+      .title {
+        font-size: 2.2rem;
+      }
+      .neon-link {
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        word-break: break-all;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Canvas principal -->
+  <canvas id="mainCanvas"></canvas>
+
+  <!-- Contenido principal -->
+  <div class="container">
+    <h1 class="title">Jorge Torres Rios</h1>
+    <div class="link-container">
+      <a href="https://youtu.be/dQw4w9WgXcQ" target="_blank" class="neon-link">
+        https://youtu.be/dQw4w9WgXcQ
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // --- CONFIGURACIÓN DEL RASTRO DEL CURSOR ---
+    let cursorPoints = [];
+    const maxCursorPoints = 20;
+
+    window.addEventListener('mousemove', (e) => {
+      cursorPoints.push({
+        x: e.clientX,
+        y: e.clientY
+      });
+
+      if (cursorPoints.length > maxCursorPoints) {
+        cursorPoints.shift();
+      }
+    });
+
+    // --- CONFIGURACIÓN DE BURBUJAS NEÓN CAYENDO ---
+    const bubbles = [];
+    const numBubbles = 45; // Cantidad de burbujas en pantalla
+
+    class Bubble {
+      constructor() {
+        this.reset();
+        this.y = Math.random() * canvas.height; // Posición inicial dispersa
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = -20;
+        this.radius = Math.random() * 12 + 4; // Tamaños variados
+        this.speed = Math.random() * 1.5 + 0.5; // Velocidad de caída
+        this.opacity = Math.random() * 0.7 + 0.3;
+        this.swing = Math.random() * 0.02 - 0.01; // Oscilación horizontal ligera
+      }
+
+      update() {
+        this.y += this.speed;
+        this.x += Math.sin(this.y * 0.02) * 0.5; // Movimiento orgánico suave
+
+        // Si la burbuja sale por abajo, vuelve a subir arriba
+        if (this.y - this.radius > canvas.height) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        
+        // Estilo neón: borde brillante transparente
+        ctx.strokeStyle = `rgba(0, 243, 255, ${this.opacity})`;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#00f3ff';
+        ctx.shadowBlur = 12;
+        ctx.stroke();
+
+        // Destello en el centro de la burbuja
+        ctx.beginPath();
+        ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity * 0.6})`;
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    // Inicializar burbujas
+    for (let i = 0; i < numBubbles; i++) {
+      bubbles.push(new Bubble());
+    }
+
+    // --- BUCLE DE ANIMACIÓN ---
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Dibujar y actualizar burbujas cayendo
+      bubbles.forEach(bubble => {
+        bubble.update();
+        bubble.draw();
+      });
+
+      // 2. Dibujar línea neón del cursor
+      if (cursorPoints.length > 1) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(cursorPoints[0].x, cursorPoints[0].y);
+
+        for (let i = 1; i < cursorPoints.length; i++) {
+          ctx.lineTo(cursorPoints[i].x, cursorPoints[i].y);
+        }
+
+        ctx.strokeStyle = '#00f3ff';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = '#00f3ff';
+        ctx.shadowBlur = 20;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Desvanecer la línea del cursor si no se mueve
+      if (cursorPoints.length > 0) {
+        cursorPoints.shift();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
